@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <title>Оюутнуудын жагсаалт</title>
+  <style>
+    body { font-family: Arial; max-width: 700px; margin: 30px auto; }
+    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>Оюутнуудын жагсаалт</h1>
+  <form id="f">
+    <input id="name" placeholder="Нэр" required>
+    <input id="age" type="number" placeholder="Нас" required>
+    <input id="city" placeholder="Хот">
+    <button type="submit">Нэмэх</button>
+  </form>
+  <p id="msg"></p>
+  <table>
+    <thead><tr><th>Нэр</th><th>Нас</th><th>Хот</th><th>Хичээл</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <script>
+    async function load() {
+      const res = await fetch("/api/students");
+      const list = await res.json();
+      const tbody = document.getElementById("tbody");
+      tbody.innerHTML = "";
+      list.forEach((s) => {
+        const tr = document.createElement("tr");
+        [s.name, s.age, s.city, s.course].forEach((v) => {
+          const td = document.createElement("td");
+          td.textContent = v ?? "";
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+    document.getElementById("f").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const res = await fetch("/api/students", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: document.getElementById("name").value,
+          age: Number(document.getElementById("age").value),
+          city: document.getElementById("city").value
+        })
+      });
+      const msg = document.getElementById("msg");
+      if (res.ok) { msg.textContent = "Амжилттай нэмлээ"; e.target.reset(); load(); }
+      else { msg.textContent = (await res.json()).message; }
+    });
+    load();
+  </script>
+</body>
+</html>
